@@ -1,6 +1,7 @@
 from Meal import Meal
 from Course import Course
 from SPXCafe import SPXCafe
+import pyfiglet
 
 class Menu(SPXCafe):
     def __init__(self, menuName=None) -> None:
@@ -32,7 +33,8 @@ class Menu(SPXCafe):
         return f"{self.getMenuName()} Menu"
 
     def display(self):
-        print(f"{"-"*5}{self.getMenuName()} {"-"*5}\n")
+        # print(f"{"-"*5}{self.getMenuName()} {"-"*5}\n")
+        print(pyfiglet.figlet_format(text=self.getMenuName(), font="calvin_s", width=600)) #calvin_s,
         if self.getCourses():
             for course in self.getCourses():
                 course.display()
@@ -60,7 +62,7 @@ class Menu(SPXCafe):
         return courses
 
 def main():
-    menu = Menu("Ristorant italiano")
+    menu = Menu("restaurant italiano")
     menu.display()
 
     menu.displayCourses()

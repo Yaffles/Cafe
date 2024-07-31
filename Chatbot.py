@@ -4,6 +4,8 @@ from Customer import Customer
 from Order import Order
 from OrderItem import OrderItem
 
+from Meal import Meal # only for pretty
+
 from NLP import NLP
 
 from rapidfuzz.fuzz import partial_ratio
@@ -69,7 +71,7 @@ class Chatbot():
 
             for result in results:
                 (match, confidence, index) = result
-                print(f"Checking: {result}")
+                # print(f"Checking: {result}")
                 if confidence > maxConfidence:
                     maxConfidence = confidence
                     matches = [match]
@@ -108,7 +110,7 @@ class Chatbot():
 
     def isPastCustomer(self):
         """Checks if the person has been to the restaurant before"""
-        inp = self.waiter.listen("Have you been to ").strip().lower()
+        inp = self.waiter.listen(f"Have you been to {self.cafeName} before?").strip().lower()
         choice = self.getUserConfirmation(inp)
         if choice == "yes":
             return True
@@ -129,28 +131,36 @@ class Chatbot():
 
 
         if self.customer.existsDB():
-            pass
+            print("Customer exists")
+        else:
+            print(f"Customer with username {username} does not exist")
+            self.waiter.say(f"I am sorry, I could not find you in our database with username {username}.")
+            self.customer = None
+            return False
 
-
-
-
-        self.waiter.say(f"Welcome {self.customer.getFirstName()} {self.customer.getLastName()}.  May I call your {self.customer.getFirstName()}?")
+        self.waiter.say(f"Welcome {self.customer.getFirstName()} {self.customer.getLastName()}!")
+        return True
 
     def createCustomer(self):
         '''Create a new customer'''
-        self.waiter.say("I am sorry, I could not find you in our database. Let's create a new account for you.")
+        self.waiter.say("Let's create a new account for you.")
 
         inp = self.waiter.listen("What is your name?", useSR=False)
         name = self.nlp.getNameByPartsOfSpeech(inp)
-        name = self.nlp.getNameByEntityType(inp)
+        # name = self.nlp.getNameByEntityType(inp)
         names = name.split(" ")
+        firstName = names[0].title()
+        lastName = names[1].title() if len(names)>1 else ""
 
-        self.waiter.say(f"Hello {name}. Welcome to Italiabot. How can I help you today?")
-        self.customer = Customer()
-        self.customer.setFirstName(names[0])
-        self.customer.setLastName(names[1] if len(names)>1 else "")
+        # self.waiter.say(f"Hello {names}. Welcome to Italiabot. How can I help you today?")
+        
+
+
+        # get username
+        username = self.waiter.listen(f"Thank you {firstName}. Please choose a uesrname: ",useSR=False)
+        self.customer = Customer(userName=username, firstName=firstName, lastName=lastName)
         self.customer.save()
-
+    
         self.waiter.say(f"Welcome {self.customer.getFirstName()} {self.customer.getLastName()}.  May I call your {self.customer.getFirstName()}?")
 
     def getRequest(self):
@@ -179,13 +189,60 @@ class Chatbot():
 
     def displayOrderHistory(self):
         self.waiter.say(f"Ok, {self.customer.getFirstName()}. Let's show your previous orders. ")
+        orders = Order.getOrdersByCustomer(self.customer.getCustomerId())
+        for o in orders:
+            o.display()
 
     def displayMenu(self):
         self.waiter.say(f"Alright, {self.customer.getFirstName()}. Let's see the menu. ")
         self.menu.display()
 
+    def askForMeal(self):
+        item = self.waiter.listen("What would you like to order?").strip().lower()
+        meals = self.menu.findMeal(item)
+
+        if len(meals) > 1:
+            mealNames = [meal.getMealName() for meal in meals]
+
+
+            new = self.waiter.listen(f"Please choose between: {mealNames.join(", ")}")
+            chosenMealNames = self.getOptions(new, meals)
+            chosenMeals = [meal for meal in meals if meal.getMeanName() in chosenMealNames]
+            return chosenMeals[0]
+
+
+        elif len(meals) == 0:
+            self.waiter.say(f"Could not find {item} on the menu")
+            return self.askForMeal()
+        else:
+            return meals[0]
+
+
+
     def orderFood(self):
         self.waiter.say(f"Prego, {self.customer.getFirstName()}. Let's order some food. ")
+        order = Order(self.customer.getCustomerId())
+        while True:
+            self.menu.display()
+            
+            meal: Meal = self.askForMeal()
+            if meal:
+                orderItem = OrderItem(mealId=meal.getMealId())
+                orderItem.display()
+                order.addItem(orderItem)
+                self.waiter.say(f"Would you like to order anything else?")
+                choice = self.getUserConfirmation()
+                if choice == "no":
+                    break
+            
+            else:
+                self.waiter.say(f"Sorry, I could not find that item in the menu. Please try again.")
+        
+        id = order.save()
+        if id:
+            self.waiter.say(f"Thank you, {self.customer.getFirstName()}, for ordering at {self.cafeName} today. Your order number is {id}.") # getCafeName() function
+        else:
+            self.waiter.say(f"Sorry, {self.customer.getFirstName()}, I could not process your order. Please try again.")
 
 
 

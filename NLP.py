@@ -6,6 +6,7 @@ class NLP():
     def __init__(self):
         # print("loading model")
         self.nlp = spacy.load("en_core_web_sm")
+        self.numbers = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'] #TODO allow any number
         # print("model loaded")
     
     def getNameByPartsOfSpeech(self, speech):
@@ -33,13 +34,33 @@ class NLP():
         print(f"Name: {name}")
         return name
 
+    def getNumber(self, string):
+        numbers = []
+        doc = self.nlp(string)
+        print("Entities")
+        for ent in doc.ents:
+            if ent._label == "CARDINAL":
+                numbers.append(ent.text)
+    
+    def getInteger(self, word):
+        """Converts a word to an integer ('one' -> 1)"""
+        number = self.numbers.index(word) if word in self.numbers else None
+        if number:
+            return number
+        # Try different expressions
+        
+
+
 def main():
     nlpDemo = NLP()
-    nlpDemo.getNameByPartsOfSpeech("My name is John Doe")
-    nlpDemo.getNameByPartsOfSpeech("I am John Doe")
-    nlpDemo.getNameByPartsOfSpeech("John Doe is my name")
-    nlpDemo.getNameByPartsOfSpeech("John Doe")
-    nlpDemo.getNameByPartsOfSpeech("John")
+    print(nlpDemo.getNumber("I woudld like one steak"))
+
+
+    # nlpDemo.getNameByPartsOfSpeech("My name is John Doe")
+    # nlpDemo.getNameByPartsOfSpeech("I am John Doe")
+    # nlpDemo.getNameByPartsOfSpeech("John Doe is my name")
+    # nlpDemo.getNameByPartsOfSpeech("John Doe")
+    # nlpDemo.getNameByPartsOfSpeech("John")
 
 if __name__ == "__main__":
     main()

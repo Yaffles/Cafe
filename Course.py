@@ -13,10 +13,9 @@ class Course(SPXCafe):
         self.setMeals(meals)
 
         if self.existsDB():
-            print("exists")
             if not self.setCourse():
                 print(f"Course with ID {courseId} does not exist in the database.")
-    
+
     def setCourse(self, courseId=None):
         retcode = False
         if courseId is not None:
@@ -42,18 +41,18 @@ class Course(SPXCafe):
             self.__courseName = courseName.lower()
         else:
             self.__courseName = None
-    
+
     def setMeals(self, meals=None):
         if meals is not None:
             self.__meals = meals
         else:
             self.__meals = []
-    
+
     def addMeal(self, meal):
         if isinstance(meal, Meal.Meal):
             self.__meals.append(meal)
             meal.setCourse(self)
-    
+
     def findMeal(self, searchMeal=None):
         meals = []
         if searchMeal:
@@ -62,33 +61,34 @@ class Course(SPXCafe):
                 if foundMeal:
                     meals.append(foundMeal)
         return meals
-    
+
     def findCourse(self, searchCourse=None):
         '''Find a Meal by name using partial_ratio from rapidfuzz'''
         if searchCourse:
             if self.isMatch(searchCourse):
                 return self
         return None
-    
+
     def isMatch(self, searchCourse):
         '''Check if the searchMeal is a match to the meal name'''
         return partial_ratio(searchCourse.lower(), self.getCourseName().lower()) > 80
-    
+
     def getCourseId(self):
         return self.__courseId
     def getCourseName(self):
         return self.__courseName
     def getMeals(self):
         return self.__meals
-    
+
     def __str__(self) -> str:
         return f"Course ID: {self.getCourseId()}, Course Name: {self.getCourseName()}"
-    
+
     def display(self):
-        print(self)
+        print(self.getCourseName().title()+": ")
         for meal in self.getMeals():
             meal.display()
-    
+        print()
+
     def existsDB(self):
         '''Check if object already exists in database'''
         retcode = False
@@ -123,7 +123,7 @@ class Course(SPXCafe):
         else:
             sql = f"DELETE FROM courses WHERE courseId = {self.getCourseId()}"
             self.dbChangeData(sql)
-    
+
     @classmethod
     def getCourses(cls):
         courses = []
@@ -162,7 +162,7 @@ def main():
             meal.display()
     else:
         print(f"Search result for {searchMeal} is not found")
-    
+
     searchCourse = input("Search Course: ").lower().strip()
     isCourse = course.findCourse(searchCourse)
     if isCourse:
@@ -171,6 +171,5 @@ def main():
         print(f"Search result for {searchCourse} is not found")
 
 
-print(__name__)
 if __name__ == "__main__":
     main()

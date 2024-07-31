@@ -4,9 +4,9 @@ class Database():
 
     def __init__(self,dbname):
         self.__dbname = dbname
-    
+
     def dbConnect(self):
-        
+
         try:
             conn = sqlite3.connect(self.__dbname)
             conn.row_factory = sqlite3.Row
@@ -74,7 +74,7 @@ def main():
     if results:
         for course in results:
             print(course['courseId'],course['courseName'])
-       
+
     sql = "INSERT INTO meals (mealName, mealPrice, courseId) VALUES ('meringue',6.5,3)"
     mealId = db.dbPutData(sql)
 

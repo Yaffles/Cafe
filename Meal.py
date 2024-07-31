@@ -37,7 +37,7 @@ class Meal(SPXCafe):
                 # self.setCourse(Course.Course(self.getCourseId()))
             retcode = True
         return retcode
-    
+
     def setMealId(self, mealId):
         self.__mealId = mealId
     def setMealName(self, mealName):
@@ -52,10 +52,10 @@ class Meal(SPXCafe):
             self.setCourseId(self.__course.getCourseId())
         else:
             if self.getCourseId():
-                self.__course = Course.Course(self.getCourseId())    
+                self.__course = Course.Course(self.getCourseId())
             else:
                 self.__course = None
-    
+
     def getMealId(self):
         return self.__mealId
     def getMealName(self):
@@ -66,24 +66,26 @@ class Meal(SPXCafe):
         return self.__courseId
     def getCourse(self):
         return self.__course
-    
+
     def findMeal(self, searchMeal=None):
         '''Find a Meal by name using partial_ratio from rapidfuzz'''
         if searchMeal:
             if self.isMatch(searchMeal):
                 return self
         return None
-    
+
     def isMatch(self, searchMeal):
         '''Check if the searchMeal is a match to the meal name'''
         return partial_ratio(searchMeal.lower(), self.getMealName().lower()) > 80
-    
+
     def __str__(self):
         return f"Meal ID: {self.getMealId()}, Meal Name: {self.getMealName()}, Meal Price: {self.getMealPrice()}, Course ID: {self.getCourseId()}"
-    
+
     def display(self):
         '''Formal display Meal'''
-        print(f"Meal: <Course:{self.getCourseId():2d} {self.getCourse().getCourseName().title()}, Meal:{self.getMealId():2d}> {self.getMealName().title():20s} ${self.getMealPrice():5.2f}")
+        # print(f"Meal: <Course:{self.getCourseId():2d} {self.getCourse().getCourseName().title()}, Meal:{self.getMealId():2d}> {self.getMealName().title():20s} ${self.getMealPrice():5.2f}")
+        print(f"    > {self.getMealName().title():20s} ${self.getMealPrice():5.2f}")
+
 
 
     def existsDB(self):
@@ -99,7 +101,7 @@ class Meal(SPXCafe):
                 if count > 0:
                     retcode = True
         return retcode
-    
+
     def save(self):
         '''Save meal data back to the database'''
 
@@ -123,7 +125,7 @@ class Meal(SPXCafe):
             '''
             # Save new primary key
             self.setMealId(self.dbPutData(sql))
-    
+
     @classmethod
     def getMeals(cls,course):
         '''Gets Meals for a Course object/instance - example of Aggregation'''

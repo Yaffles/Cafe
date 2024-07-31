@@ -9,15 +9,15 @@ class Avatar:
         self.name = name
         self.initSR()
         self.initVoice()
-        
+
         self.introduce()
 
     def initSR(self):
         self.sample_rate = 48000
         self.chunk_size = 2048
         self.r = sr.Recognizer()
-        self.useSr = True
-        self.energy_threshold = 6000
+        self.useSr = False # temporarily disable speech recognition
+        self.energy_threshold = 1000
 
     def initVoice(self):
         self.__engine = pyttsx4.init()
@@ -82,8 +82,10 @@ class Avatar:
                 #print(sr.Microphone.list_microphone_names())
                 with sr.Microphone(sample_rate=self.sample_rate, chunk_size=self.chunk_size) as source:
                     # listen for 1 second to calibrate the energy threshold for ambient noise levels
-                    # self.r.adjust_for_ambient_noise(source)
+                    self.r.adjust_for_ambient_noise(source)
+                    print("Energy threshold: ", self.r.energy_threshold)
                     self.say(prompt)
+                    print("Listening...")
                     audio = self.r.listen(source)
                 try:
                     print("Recognizing...")

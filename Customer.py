@@ -10,7 +10,8 @@ class Customer(SPXCafe):
         self.setCustomerId(customerId)
         self.setUserName(userName)
         self.setFirstName(firstName)
-        self.setUserName(userName)
+        self.setLastName(lastName)
+        
 
         # if userName is not None:
         #     self.setUserName(userName)
@@ -19,12 +20,11 @@ class Customer(SPXCafe):
             # self.existsDB()
         # elif customerId is not None:
         #     self.setCustomerId(customerId)
-        
+
         if self.existsDB():
-            print("exists")
             if not self.setCustomer():
                 print(f"Customer with ID {customerId} does not exist in the database.")
-    
+
     def setCustomer(self, userName=None, customerId=None):
         retcode = False
         if self.getCustomerId():
@@ -52,7 +52,7 @@ class Customer(SPXCafe):
         self.__userName = userName
     def setCustomerId(self, customerId=None):
         self.__customerId = customerId
-    
+
     def getFirstName(self):
         return self.__firstName
     def getLastName(self):
@@ -61,22 +61,23 @@ class Customer(SPXCafe):
         return self.__userName
     def getCustomerId(self):
         return self.__customerId
-    
+
 
     def existsDB(self):
         '''Check if the customer exists in the database'''
         retcode = False
 
+        sql = ""
+        sqlother = None
+
         if self.getCustomerId():
             sqlother = f"SELECT count(*) AS count FROM customers WHERE customerId = '{self.getCustomerId()}'"
 
-            sql = f"SELECT customerId, userName FROM customers WHERE userName = '{self.getUserName()}'"
-
         elif self.getUserName():
             sql = f"SELECT customerId, userName FROM customers WHERE userName = '{self.getUserName()}'"
-        
+
         if sqlother:
-            countData = self.dbGetData(sql)
+            countData = self.dbGetData(sqlother)
             if countData:
                 for countRecord in countData:
                     count = int(countRecord['count'])
@@ -94,14 +95,28 @@ class Customer(SPXCafe):
 
                     retcode = True
         return retcode
-        
-    
+
+
 
     # def setCustomer(self, userName=None, customerId=None):
     #     pass. Not using anymore
-        
-    def save():
-        pass
+
+    def save(self):
+        """Save / update the customer to the database"""
+        id = self.getCustomerId()
+        if id: # If we have a customerId, then update the record
+            # sql = "UPDATE customers SET firstName = %s, lastName = %s, userName = %s WHERE customerId = %s"
+            # values = (self.getFirstName(), self.getLastName(), self.getUserName(), id)
+            # self.dbPutData(sql, values) TODO Mabye implement
+
+            sql = f"UPDATE customers SET firstName = '{self.getFirstName()}', lastName = '{self.getLastName()}', userName = '{self.getUserName()}' WHERE customerId = {id}"
+            self.dbChangeData(sql)
+        else: # If we don't have a customerId, then insert the record
+            sql = f"INSERT INTO customers (firstName, lastName, userName) VALUES ('{self.getFirstName()}', '{self.getLastName()}', '{self.getUserName()}')"
+            id = self.dbPutData(sql)
+            self.setCustomerId(id)
+
+
 
 def main():
     c = Customer("jbloggs")
