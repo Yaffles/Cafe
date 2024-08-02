@@ -35,12 +35,20 @@ class NLP():
         return name
 
     def getNumber(self, string):
+        """Extracts a number from a string"""
         numbers = []
         doc = self.nlp(string)
         print("Entities")
         for ent in doc.ents:
-            if ent._label == "CARDINAL":
+            if ent.label_ == "CARDINAL":
                 numbers.append(ent.text)
+        
+        if len(numbers) != 1:
+            return None
+        else:
+            return numbers[0]
+
+        
     
     def getInteger(self, word):
         """Converts a word to an integer ('one' -> 1)"""
@@ -53,7 +61,10 @@ class NLP():
 
 def main():
     nlpDemo = NLP()
-    print(nlpDemo.getNumber("I woudld like one steak"))
+    numberWord = nlpDemo.getNumber("I woudld like seven steak")
+    
+    number = nlpDemo.getInteger(numberWord)
+    print(f"{numberWord} is {number}")
 
 
     # nlpDemo.getNameByPartsOfSpeech("My name is John Doe")

@@ -46,6 +46,8 @@ class Chatbot():
                 "response":      "kill your self"
         }
 
+        
+
         self.mainOptions = self.exitRequest["keywords"] + self.historyRequest["keywords"] + self.menuRequest["keywords"] + self.orderRequest["keywords"] + self.dieRequest["keywords"]
 
         # self.exitRequest =      [["exit","leave","bye"],                            "leave us now"]
@@ -197,26 +199,49 @@ class Chatbot():
         self.waiter.say(f"Alright, {self.customer.getFirstName()}. Let's see the menu. ")
         self.menu.display()
 
-    def askForMeal(self):
+    def askForMeal(self) -> tuple[Meal, int]: 
         item = self.waiter.listen("What would you like to order?").strip().lower()
+
+        numberWord = self.nlp.getNumber(item)
+        if numberWord:
+            item = item.replace(numberWord, "").strip()
+            
+        quantity = self.nlp.getInteger(numberWord)
+        if not quantity:
+            if "a" in item:
+                quantity = 1
+                item = item.replace("a", "").strip()
+            if "couple" in item:
+                quantity = 2
+                item = item.replace("couple", "").strip()
+        
+        
         meals = self.menu.findMeal(item)
 
         if len(meals) > 1:
             mealNames = [meal.getMealName() for meal in meals]
 
-
             new = self.waiter.listen(f"Please choose between: {mealNames.join(", ")}")
             chosenMealNames = self.getOptions(new, meals)
             chosenMeals = [meal for meal in meals if meal.getMeanName() in chosenMealNames]
-            return chosenMeals[0]
+            return chosenMeals[0], quantity
 
 
         elif len(meals) == 0:
             self.waiter.say(f"Could not find {item} on the menu")
             return self.askForMeal()
         else:
-            return meals[0]
+            return meals[0], quantity
 
+    def askForQuantity(self) -> int:
+        answer = self.waiter.listen("How many would you like?")
+        numberWord = self.nlp.getNumber(answer)
+        quantity = self.nlp.getInteger(numberWord)
+        if not quantity:
+            self.waiter.say(f"Sorry, I could not understand the quantity. Please try again.")
+            return self.askForQuantity()
+        return quantity
+        
 
 
     def orderFood(self):
@@ -225,12 +250,18 @@ class Chatbot():
         while True:
             self.menu.display()
             
-            meal: Meal = self.askForMeal()
+            meal, quantity = self.askForMeal()
+            
             if meal:
-                orderItem = OrderItem(mealId=meal.getMealId())
+                if not quantity:
+                    quantity = self.askForQuantity()
+
+                orderItem = OrderItem(mealId=meal.getMealId(), quantity=quantity)
                 orderItem.display()
                 order.addItem(orderItem)
+
                 self.waiter.say(f"Would you like to order anything else?")
+
                 choice = self.getUserConfirmation()
                 if choice == "no":
                     break
