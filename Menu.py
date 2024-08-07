@@ -5,6 +5,7 @@ import pyfiglet
 
 class Menu(SPXCafe):
     def __init__(self, menuName=None) -> None:
+        """Constructor Method"""
         super().__init__()
         self.setMenuName(menuName)
 
@@ -26,13 +27,14 @@ class Menu(SPXCafe):
     def getMenuName(self):
         return f"{self.__menuName}"
 
-    def getCourses(self):
+    def getCourses(self) -> list[Course]:
         return self.__courses
 
     def __str__(self) -> str:
         return f"{self.getMenuName()} Menu"
 
     def display(self):
+        """Display the menu"""
         # print(f"{"-"*5}{self.getMenuName()} {"-"*5}\n")
         print(pyfiglet.figlet_format(text=self.getMenuName(), font="calvin_s", width=600)) #calvin_s,
         if self.getCourses():
@@ -40,13 +42,16 @@ class Menu(SPXCafe):
                 course.display()
 
     def displayCourses(self):
+        """Display the courses in the menu"""
         print(f"Course List: ", end="")
         courseNames = []
         for course in self.getCourses():
             courseNames.append(course.getCourseName().title())
         print(", ".join(courseNames))
 
-    def findMeal(self, searchMeal=None):
+    def findMeal(self, searchMeal=None) -> list[Meal]:
+        """Find a meal in the menu"""
+
         meals = []
         if searchMeal:
             for course in self.getCourses():
@@ -54,6 +59,8 @@ class Menu(SPXCafe):
             return meals
 
     def findCourse(self, searchCourse=None):
+        """Find a course in the menu"""
+        
         courses = []
         if searchCourse:
             for course in self.getCourses():

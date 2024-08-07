@@ -8,6 +8,7 @@ class Order(SPXCafe):
         super().__init__()
 
         self.items: list [OrderItem] = []
+        self.setTotalAmount(0)
 
         if orderId is not None:
             self.setOrderId(orderId)
@@ -19,7 +20,6 @@ class Order(SPXCafe):
             self.setOrderId(None)
             self.setTotalAmount(0)
             self.setOrderDate(None)
-
 
 
 
@@ -45,7 +45,12 @@ class Order(SPXCafe):
     def getCustomerId(self):
         return self.__customerId
     
+    def getItemAmount(self):
+        return len(self.items)
+    
     def addItem(self, item):
+        """Add an OrderItem to the order"""
+
         if isinstance(item, OrderItem):
             self.addTotalAmount(item.getPrice() * item.getQuantity())
             item.setOrderId(self.getOrderId())
@@ -60,7 +65,7 @@ class Order(SPXCafe):
             
     
     def save(self):
-        """save the order to the database if it does not exist and save items, returns True if successful"""
+        """Save the order to the database if it does not exist and save items, returns success"""
         if not self.getOrderId() and self.getCustomerId():
             sql = f"INSERT INTO orders (customerId, totalAmount) VALUES ({self.getCustomerId()}, {self.getTotalAmount()})"
             id = self.dbPutData(sql)
@@ -98,19 +103,24 @@ class Order(SPXCafe):
 
 
     def display(self):
-        print(f"Order ID: {self.getOrderId()}")
-        print(f"Total Amount: {self.getTotalAmount()}")
+        """Display the order details"""
+
+        print(f"Order Number: {self.getOrderId()}")
         print(f"Order Date: {self.getOrderDate()}")
         print(f"Order Items: {len(self.items)}")
         for item in self.items:
             print(f"    {item.getQuantity()} {item.getMealName()} for ${item.getPrice()}")
             # item.display()
+        print(f"Total Amount: ${self.getTotalAmount()}")
+        
         print()
     
     
     
     @classmethod
     def getOrdersByCustomer(cls, customerId):
+        """Get all the orders for a customer"""
+        
         orders = []
         sql = f"SELECT orderId, totalAmount, orderDate FROM orders WHERE customerId = {customerId}"
         orderData = SPXCafe().dbGetData(sql)
@@ -128,11 +138,11 @@ if __name__ == "__main__":
     for o in order:
         o.display()
 
-    order = Order(customerId=2)
-    order.addItem(OrderItem(mealId=1, quantity=2, price=10))
-    order.addItem(OrderItem(mealId=2, quantity=1, price=15))
-    order.display()
+    # order = Order(customerId=2)
+    # order.addItem(OrderItem(mealId=1, quantity=2, price=10))
+    # order.addItem(OrderItem(mealId=2, quantity=1, price=15))
+    # order.display()
 
-    order.save()
-    order.display()
+    # order.save()
+    # order.display()
 

@@ -8,9 +8,6 @@ class OrderItem(SPXCafe):
         ''' Constructor Method '''
         super().__init__()
 
-        
-
-
         self.setOrderItemId(orderItemId)
         self.setOrderId(orderId)
         self.setMealId(mealId)

@@ -26,6 +26,7 @@ class Customer(SPXCafe):
                 print(f"Customer with ID {customerId} does not exist in the database.")
 
     def setCustomer(self, userName=None, customerId=None):
+        """Set the customer data from the database"""
         retcode = False
         if self.getCustomerId():
             sql = f"SELECT firstName, lastName, userName FROM customers WHERE customerId = {self.getCustomerId()}"

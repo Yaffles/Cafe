@@ -6,6 +6,7 @@ class Database():
         self.__dbname = dbname
 
     def dbConnect(self):
+        """Connect to the database"""
 
         try:
             conn = sqlite3.connect(self.__dbname)
@@ -16,6 +17,7 @@ class Database():
             return None
 
     def dbGetData(self,sql):
+        """Get data from the database"""
         returnData = None
         try:
             with sqlite3.connect(self.__dbname) as conn:
@@ -31,6 +33,7 @@ class Database():
         return returnData
 
     def dbPutData(self,sql):
+        """Put data into the database"""
         # insert sql command - returns new id
         newId = None
         try:
@@ -49,6 +52,7 @@ class Database():
         return newId
 
     def dbChangeData(self,sql):
+        """Change data in the database"""
         # change data sql command - can be update or delete commands
         try:
             with sqlite3.connect(self.__dbname) as conn:

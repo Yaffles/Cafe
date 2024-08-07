@@ -5,12 +5,14 @@ from pydub import AudioSegment
 from pydub.playback import play
 
 class Avatar:
+    """A class that represents an avatar that can speak and listen"""
+
     def __init__(self, name="Elsa") -> None:
         self.name = name
         self.initSR()
         self.initVoice()
 
-        self.introduce()
+        # self.introduce() TODO idk
 
     def initSR(self):
         self.sample_rate = 48000
@@ -75,6 +77,7 @@ class Avatar:
         self.say("Hello, I am "+self.name)
 
     def listen(self, prompt="I am listening, please speak:", useSR=True):
+        """Listen to the user and return the words spoken"""
         words = ""
         if self.useSr and useSR:
             try:

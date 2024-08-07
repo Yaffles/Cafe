@@ -6,6 +6,7 @@ class Course(SPXCafe):
     """Course class - holds information about a Menu course"""
 
     def __init__(self, courseId=None, courseName=None, meals=None) -> None:
+        """Constructor Method"""
         super().__init__()
 
         self.setCourseId(courseId)
@@ -17,6 +18,8 @@ class Course(SPXCafe):
                 print(f"Course with ID {courseId} does not exist in the database.")
 
     def setCourse(self, courseId=None):
+        """Set the course data from the database"""
+
         retcode = False
         if courseId is not None:
             self.setCourseId(courseId)
@@ -43,17 +46,20 @@ class Course(SPXCafe):
             self.__courseName = None
 
     def setMeals(self, meals=None):
+        """Set the meals for the course"""
         if meals is not None:
             self.__meals = meals
         else:
             self.__meals = []
 
     def addMeal(self, meal):
+        """Add a meal to the course"""
         if isinstance(meal, Meal.Meal):
             self.__meals.append(meal)
             meal.setCourse(self)
 
     def findMeal(self, searchMeal=None):
+        """Find a Meal by name using NLP"""
         meals = []
         if searchMeal:
             for meal in self.getMeals():
@@ -63,7 +69,7 @@ class Course(SPXCafe):
         return meals
 
     def findCourse(self, searchCourse=None):
-        '''Find a Meal by name using partial_ratio from rapidfuzz'''
+        '''Find a Meal by name using NLP'''
         if searchCourse:
             if self.isMatch(searchCourse):
                 return self
@@ -81,9 +87,11 @@ class Course(SPXCafe):
         return self.__meals
 
     def __str__(self) -> str:
+        """String representation of the Course object"""
         return f"Course ID: {self.getCourseId()}, Course Name: {self.getCourseName()}"
 
     def display(self):
+        """Display the Course object"""
         print(self.getCourseName().title()+": ")
         for meal in self.getMeals():
             meal.display()
@@ -109,6 +117,8 @@ class Course(SPXCafe):
         # return False
 
     def save(self):
+        """Save the Course object to the database"""
+
         if self.existsDB():
             sql = f"UPDATE courses SET courseName = '{self.getCourseName()}' WHERE courseId = {self.getCourseId()}"
             self.dbChangeData(sql)
@@ -117,6 +127,8 @@ class Course(SPXCafe):
             self.setCourseId(self.dbPutData(sql))
 
     def delete(self):
+        """Delete the Course object from the database"""
+
         if len(self.getMeals()) > 0:
             for meal in self.getMeals():
                 meal.delete()
@@ -126,6 +138,8 @@ class Course(SPXCafe):
 
     @classmethod
     def getCourses(cls):
+        """Get all the courses from the database"""
+        
         courses = []
         sql = "SELECT courseId, courseName FROM courses ORDER BY courseId"
 

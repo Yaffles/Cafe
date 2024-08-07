@@ -37,25 +37,11 @@ class OrderItem(Meal):
     def getOrderId(self):
         return self.__orderId
     
-    # def setMealId(self, mealId):
-    #     self.__mealId = mealId
-    # def getMealId(self):
-    #     return self.__mealId
-    
     def setQuantity(self, quantity):
         self.__quantity = quantity
     def getQuantity(self):
         return self.__quantity
     
-    # def setPrice(self, price):
-    #     self.__price = price
-    # def getPrice(self):
-    #     return self.__price
-    
-    # def setMealName(self, mealName):
-    #     self.__mealName = mealName
-    # def getMealName(self):
-    #     return self.__mealName
     
     def save(self):
         '''Save the OrderItem to the database'''

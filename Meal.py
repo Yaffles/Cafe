@@ -4,6 +4,7 @@ from rapidfuzz.fuzz import partial_ratio
 
 class Meal(SPXCafe):
     def __init__(self, mealId=None, mealName=None, mealPrice=None, courseId=None, course=None):
+        """Constructor Method"""
         super().__init__()
 
         self.setMealId(mealId)

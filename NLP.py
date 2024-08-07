@@ -4,24 +4,26 @@ import spacy
 
 class NLP():
     def __init__(self):
-        # print("loading model")
+        """Constructor Method"""
+
         self.nlp = spacy.load("en_core_web_sm")
         self.numbers = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'] #TODO allow any number
-        # print("model loaded")
     
     def getNameByPartsOfSpeech(self, speech):
+        """Extracts a name from a string using parts of speech"""
         names = []
         doc = self.nlp(speech)
         for token in doc:
-            print(token.text, token.pos_)
+            # print(token.text, token.pos_)
             if token.pos_ == "PROPN":
                 names.append(token.text)
         
         name = " ".join(names)
-        print(f"Name: {name}")
+        # print(f"Name: {name}")
         return name
 
     def getNameByEntityType(self, speech):
+        """Extracts a name from a string using entity types"""
         names = []
         doc = self.nlp(speech)
         print("Entities")
@@ -35,10 +37,9 @@ class NLP():
         return name
 
     def getNumber(self, string):
-        """Extracts a number from a string"""
+        """Extracts a cardinal from a string"""
         numbers = []
         doc = self.nlp(string)
-        print("Entities")
         for ent in doc.ents:
             if ent.label_ == "CARDINAL":
                 numbers.append(ent.text)
@@ -51,17 +52,23 @@ class NLP():
         
     
     def getInteger(self, word):
-        """Converts a word to an integer ('one' -> 1)"""
+        """Converts a string to an integer ('one' -> 1, '1' -> 1)"""
         number = self.numbers.index(word) if word in self.numbers else None
         if number:
             return number
+        elif word == "couple":
+            return 2
+        elif word == "a":
+            return 1
+        else:
+            return int(word)
         # Try different expressions
         
 
 
 def main():
     nlpDemo = NLP()
-    numberWord = nlpDemo.getNumber("I woudld like seven steak")
+    numberWord = nlpDemo.getNumber("I woudld like a steak")
     
     number = nlpDemo.getInteger(numberWord)
     print(f"{numberWord} is {number}")
