@@ -2,7 +2,7 @@ import Meal
 from SPXCafe import SPXCafe
 from rapidfuzz.fuzz import partial_ratio
 
-class Course(SPXCafe):
+class   Course(SPXCafe):
     """Course class - holds information about a Menu course"""
 
     def __init__(self, courseId=None, courseName=None, meals=None) -> None:

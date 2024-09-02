@@ -1,9 +1,10 @@
 from Database import Database
 from SPXCafe import SPXCafe
 from OrderItem import OrderItem
+import Customer
 
 class Order(SPXCafe):
-    def __init__(self, customerId=None, orderId=None, totalAmount=None, orderDate=None) -> None:
+    def __init__(self, customer=None, orderId=None, totalAmount=None, orderDate=None) -> None:
         ''' Constructor Method '''
         super().__init__()
 
@@ -14,9 +15,9 @@ class Order(SPXCafe):
             self.setOrderId(orderId)
             if self.existsDB():
                 self.setOrderItems()
-        
-        elif customerId is not None:
-            self.setCustomerId(customerId)
+
+        elif customer is not None:
+            self.setCustomer(customer)
             self.setOrderId(None)
             self.setTotalAmount(0)
             self.setOrderDate(None)
@@ -39,35 +40,37 @@ class Order(SPXCafe):
         self.__orderDate = orderDate
     def getOrderDate(self):
         return self.__orderDate
-    
-    def setCustomerId(self, customerId):
-        self.__customerId = customerId
-    def getCustomerId(self):
-        return self.__customerId
-    
+
+    def setCustomer(self, customer):
+        if (isinstance(customer, Customer.Customer)):
+            self.__customer = customer
+
+    def getCustomer(self):
+        return self.__customer
+
     def getItemAmount(self):
-        return len(self.items)
-    
-    def addItem(self, item):
+        return sum([item.getPrice() * item.getQuantity() for item in self.items])
+
+    def addItem(self, meal=None, quantity=1, orderItemId=None, orderId=None,  price=None, mealName=None, mealId=None):
         """Add an OrderItem to the order"""
+        item = OrderItem(meal=meal, quantity=quantity, orderItemId=orderItemId, orderId=orderId, price=price, mealName=mealName, mealId=mealId)
 
-        if isinstance(item, OrderItem):
-            self.addTotalAmount(item.getPrice() * item.getQuantity())
-            item.setOrderId(self.getOrderId())
+        self.addTotalAmount(item.getPrice() * item.getQuantity())
+        item.setOrderId(self.getOrderId())
 
-            for orderMeal in self.items:
-                if item.getMealId() == orderMeal.getMealId():
-                    orderMeal.setQuantity(orderMeal.getQuantity() + item.getQuantity())
-                    return
+        for orderMeal in self.items:
+            if item.getMealId() == orderMeal.getMealId():
+                orderMeal.setQuantity(orderMeal.getQuantity() + item.getQuantity())
+                return
 
-            self.items.append(item)
-            
-            
-    
+        self.items.append(item)
+
+
+
     def save(self):
         """Save the order to the database if it does not exist and save items, returns success"""
-        if not self.getOrderId() and self.getCustomerId():
-            sql = f"INSERT INTO orders (customerId, totalAmount) VALUES ({self.getCustomerId()}, {self.getTotalAmount()})"
+        if not self.getOrderId() and self.getCustomer():
+            sql = f"INSERT INTO orders (customerId, totalAmount) VALUES ({self.getCustomer().getCustomerId()}, {self.getTotalAmount()})"
             id = self.dbPutData(sql)
             if id:
                 self.setOrderId(id)
@@ -76,7 +79,7 @@ class Order(SPXCafe):
                     item.save()
                 return id
         return None
-    
+
     def existsDB(self):
         """Check if the order exists in the database and set the order details"""
         retcode = False
@@ -86,57 +89,52 @@ class Order(SPXCafe):
             if orderData:
                 for order in orderData:
                     self.setOrderId(order['orderId'])
-                    # self.setTotalAmount(order['totalAmount']) TODO I add in addItem instead
                     self.setOrderDate(order['orderDate'])
                     retcode = True
         return retcode
 
     def setOrderItems(self):
         """Get the order items from the database and set the order items"""
-        sql = f"SELECT mealOrderId, mealId, quantity, orderId FROM orderItems WHERE orderId = {self.getOrderId()}"
+        sql = f"SELECT orderItemId, orderId, mealId, quantity, price FROM orderItems WHERE orderId = {self.getOrderId()}"
         orderItemData = SPXCafe().dbGetData(sql)
         for orderItem in orderItemData:
             mealName = SPXCafe().dbGetData(f"SELECT mealName FROM meals WHERE mealId = {orderItem['mealId']}")[0]['mealName']
 
-            self.addItem(OrderItem(orderItem['mealOrderId'], self.getOrderId(), orderItem['mealId'], orderItem['quantity'], 0, mealName))
+            self.addItem(orderItemId=orderItem['orderItemId'], orderId=self.getOrderId(), mealName=mealName, price=orderItem['price'], quantity=orderItem['quantity'], mealId=orderItem['mealId'])
 
 
 
     def display(self):
         """Display the order details"""
 
-        print(f"Order Number: {self.getOrderId()}")
-        print(f"Order Date: {self.getOrderDate()}")
-        print(f"Order Items: {len(self.items)}")
+        if self.getOrderId():
+            print(f"Order Number: {self.getOrderId()}")
+            print(f"Order Date: {self.getOrderDate()}")
         for item in self.items:
-            print(f"    {item.getQuantity()} {item.getMealName()} for ${item.getPrice()}")
-            # item.display()
-        print(f"Total Amount: ${self.getTotalAmount()}")
-        
-        print()
-    
-    
-    
-    @classmethod
-    def getOrdersByCustomer(cls, customerId):
-        """Get all the orders for a customer"""
-        
-        orders = []
-        sql = f"SELECT orderId, totalAmount, orderDate FROM orders WHERE customerId = {customerId}"
-        orderData = SPXCafe().dbGetData(sql)
+            print(f"• {item}")
 
-        for order in orderData:
-            orders.append(Order(orderId=order['orderId']))
-        return orders
-    #print
-    
+        print(f"Total Amount: ${self.getTotalAmount()}")
+
+        print()
+
+    def __str__(self):
+        string = ""
+        if self.getOrderId():
+            string += f"Order Number: {self.getOrderId()}\n"
+            string += f"Order Date: {self.getOrderDate()}\n"
+        for item in self.items:
+            string += f"• {item}\n"
+
+        string += f"Total Amount: ${self.getTotalAmount()}\n"
+        return string
+
+
+
+
 
 
 if __name__ == "__main__":
-    order = Order.getOrdersByCustomer(2)
-    print(order)
-    for o in order:
-        o.display()
+    pass
 
     # order = Order(customerId=2)
     # order.addItem(OrderItem(mealId=1, quantity=2, price=10))
@@ -145,4 +143,3 @@ if __name__ == "__main__":
 
     # order.save()
     # order.display()
-

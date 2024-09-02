@@ -12,11 +12,13 @@ from rapidfuzz.fuzz import partial_ratio
 from rapidfuzz.utils import default_process
 from rapidfuzz.process import extract, extractOne
 
+from FaceRecognition import FaceRecognition
+
 
 class Chatbot():
     """Chatbot class - the main class for the chatbot"""
 
-    def __init__(self, cafeName="Italiabot", waiterName="Luigi"):
+    def __init__(self, cafeName="Italiabot", waiterName="Luigi", faceRecognition=False):
         """Initialise the chatbot"""
 
         self.setCafeName(cafeName)
@@ -25,29 +27,33 @@ class Chatbot():
         self.menu = Menu("Italia Forever Lunch")
         self.nlp = NLP()
 
+        self.doFaceRecognition = faceRecognition
+        if faceRecognition:
+            self.faceRecognition = FaceRecognition()
+
+
         #  These are the keywords for each option and the corresponding response when choosing that option
         self.exitRequest = ["exit","leave","bye", "abandon", "quit"]
         self.historyRequest = ["history", "previous"]
         self.menuRequest = ["menu", "course", "meal","choice","options"]
         self.orderRequest = ["order", "buy","food"]
-        self.dieRequest = ["die", "kill", "kym"]
 
 
-        self.mainOptions = self.exitRequest + self.historyRequest + self.menuRequest + self.orderRequest + self.dieRequest
+        self.mainOptions = self.exitRequest + self.historyRequest + self.menuRequest + self.orderRequest
 
     def setCafeName(self, cafeName):
         self.cafeName = cafeName
     def getCafeName(self):
         return self.cafeName
 
-    def getOptions(self, choice=None, options=None, requiredConfidence=80):
+    def getOptions(self, choice=None, options=None, requiredConfidence=80, question=None):
         ''' choose from a list options'''
         matches = []
         maxConfidence = 0
 
         while len(matches)==0:
             if not choice:
-                choice = self.waiter.listen().strip().lower()
+                choice = self.waiter.listen(question).strip().lower()
                 if not choice:
                     break
 
@@ -55,21 +61,19 @@ class Chatbot():
 
             for result in results:
                 (match, confidence, index) = result
-                # print(f"Checking: {result}")
                 if confidence > maxConfidence:
                     maxConfidence = confidence
                     matches = [match]
                 elif confidence == maxConfidence:
                     matches.append(match)
 
-            # print(f"You have matched: {','.join(matches)} with confidence level {maxConfidence}% {len(matches)}")
 
 
         if maxConfidence < requiredConfidence:
             return None
         return matches[0] if len(matches)>0 else []
 
-    def getUserConfirmation(self, choice=None):
+    def getUserConfirmation(self, question=None):
         """Get the user's confirmation for a yes or no question"""
 
         # Define multiple options for "yes" and "no"
@@ -78,7 +82,7 @@ class Chatbot():
 
         options = yes_options + no_options
 
-        choice = self.getOptions(choice=choice, options=options, requiredConfidence=80)
+        choice = self.getOptions(choice=None, options=options, requiredConfidence=80, question=question)
         # Determine if the choice is a "yes" or "no"
         if choice in yes_options:
             return "yes"
@@ -86,13 +90,11 @@ class Chatbot():
             return "no"
         else:
             # Handle the case where the option is below the required confidence level
-            inp = self.waiter.listen("I'm sorry, I didn't understand that. Please say yes or no.")
-            return self.getUserConfirmation(inp)
+            return self.getUserConfirmation("I'm sorry, I didn't understand that. Please say yes or no.")
 
     def isPastCustomer(self):
         """Checks if the person has been to the restaurant before"""
-        inp = self.waiter.listen(f"Have you been to {self.getCafeName()} before?").strip().lower()
-        choice = self.getUserConfirmation(inp)
+        choice = self.getUserConfirmation(f"Have you been to {self.getCafeName()} before?")
         if choice == "yes":
             return True
         else:
@@ -103,16 +105,12 @@ class Chatbot():
 
         # get user name - typed in for accuracy
         username = self.waiter.listen("Please enter your username: ",useSR=False)
-        print(".... Checking our customer database.....")
         # lookup customer in database
         self.customer = Customer(username)
 
 
 
-        if self.customer.existsDB():
-            print("Customer exists")
-        else:
-            print(f"Customer with username {username} does not exist")
+        if not self.customer.existsDB():
             self.waiter.say(f"I am sorry, I could not find you in our database with username {username}.")
             self.customer = None
             return False
@@ -126,16 +124,16 @@ class Chatbot():
 
 
         firstName, lastName = self.askForName()
-
-        # self.waiter.say(f"Hello {names}. Welcome to Italiabot. How can I help you today?")
-        
-
-
-        # get username
         username = self.waiter.listen(f"Thank you {firstName}. Please choose a uesrname: ",useSR=False)
+
         self.customer = Customer(userName=username, firstName=firstName, lastName=lastName)
         self.customer.save()
-    
+
+        if self.doFaceRecognition:
+            self.waiter.say(f"Please look at the camera so I can remember your face.")
+            self.faceRecognition.add_face(self.customer.getCustomerId())
+
+
         self.waiter.say(f"Welcome {self.customer.getFirstName()} {self.customer.getLastName()}.  May I call your {self.customer.getFirstName()}?")
 
     def askForName(self):
@@ -149,7 +147,7 @@ class Chatbot():
             name = self.nlp.getNameByPartsOfSpeech(inp)
 
 
-    
+
         names = name.split(" ")
         firstName = names[0].title()
         lastName = names[1].title() if len(names)>1 else ""
@@ -167,22 +165,22 @@ class Chatbot():
 
             if choice:
                 return choice
-            
+
             self.waiter.say(f"I am sorry, I don't understand your choice. You said: '{option}. Please try again.")
 
     def displayOrderHistory(self):
         """Display the order history of the customer"""
         self.waiter.say(f"Ok, {self.customer.getFirstName()}. Let's show your previous orders. ")
-        orders = Order.getOrdersByCustomer(self.customer.getCustomerId())
+        orders = self.customer.getOrders()
         for o in orders:
             o.display()
 
     def displayMenu(self):
         """Display the menu of the restaurant"""
         self.waiter.say(f"Alright, {self.customer.getFirstName()}. Let's see the menu. ")
-        
+
         self.menu.display()
-    
+
     def displayCourse(self):
         """Display a single course in the menu"""
         course = self.chooseCourse()
@@ -200,7 +198,7 @@ class Chatbot():
             if selectedCourseName == "all":
                 self.menu.display()
                 return None
-            
+
             selectedCourse = [course for course in courses if course.getCourseName() == selectedCourseName][0]
             return selectedCourse
         else:
@@ -208,14 +206,13 @@ class Chatbot():
             return self.chooseCourse()
 
     def askForMeal(self) -> tuple[Meal, int]:
-        """Ask the user for the meal they would like to order""" 
+        """Ask the user for the meal they would like to order"""
         item = self.waiter.listen("What would you like to order?").strip().lower()
 
         # check if user is asking to exit/abandon or view the menu
         contains = self.getOptions(item, self.exitRequest + self.menuRequest)
         if contains:
             if contains in self.exitRequest:
-                self.waiter.say(f"Ok {self.customer.getFirstName()}, the order has been cancelled.")
                 return None, None
             elif contains in self.menuRequest:
                 self.displayCourse()
@@ -223,20 +220,20 @@ class Chatbot():
 
         numberWord = self.nlp.getNumber(item)
 
+        quantity=None
         if numberWord:
             item = item.replace(numberWord, "").strip()
-            
-        quantity = self.nlp.getInteger(numberWord)
+            quantity = self.nlp.getInteger(numberWord)
 
         if not quantity:
             if "couple" in item:
                 quantity = 2
-                item = item.replace("couple", "").strip()
+                item = item.replace(" couple", "").strip()
             elif " a " in item:
                 quantity = 1
-                item = item.replace(" a", "").strip()
-        
-        
+                item = item.replace("a", "").strip()
+
+
         meals = self.menu.findMeal(item)
 
         if len(meals) > 1:
@@ -254,72 +251,72 @@ class Chatbot():
         else:
             return meals[0], quantity
 
-    def askForQuantity(self) -> int:
+    def askForQuantity(self, meal) -> int:
+        if (type(meal) != Meal):
+            raise ValueError("meal must be of type Meal")
         """Ask the user for the quantity of the meal they would like to order"""
-        answer = self.waiter.listen("How many would you like?")
+        answer = self.waiter.listen(f"How many {meal.getMealName()}s would you like?")
         numberWord = self.nlp.getNumber(answer)
-        quantity = self.nlp.getInteger(numberWord)
+
+        quantity = None
+        if numberWord:
+            quantity = self.nlp.getInteger(numberWord)
 
         if quantity:
             return quantity
-        
-        # words = answer.split(" ")
-        # for word in words:
-        #     try:
-        #         if int(word):
-        #             return int(word)
-        #     except ValueError:
-        #         pass
+
 
         self.waiter.say(f"Sorry, I could not understand the quantity. Please try again.")
-        return self.askForQuantity()
-        
+        return self.askForQuantity(meal)
+
 
 
     def orderFood(self):
-        """Create an order for the customer with at least ."""
+        """Create an order for the customer with at least 3 items."""
         self.waiter.say(f"Prego, {self.customer.getFirstName()}. Let's order some food. ")
-        order = Order(self.customer.getCustomerId())
+        order = Order(self.customer)
+
+        orderCancelled = False
+        running = True
 
         self.menu.display() #TODO check if we wanna to this
-        while True:            
+
+        while running:
             meal, quantity = self.askForMeal()
-            # check if they want to exit
-            if meal is None:
-                break
-            
-            if meal:
-                if not quantity:
-                    quantity = self.askForQuantity()
+            if meal is None: # user wants to exit
+                orderCancelled = True
+                running = False
 
-                orderItem = OrderItem(mealId=meal.getMealId(), quantity=quantity)
-                mealName = meal.getMealName
-                if quantity > 1:
-                    mealName += "s"
-                self.waiter.say(f"Ok, {quantity} {meal.getMealName()} added to your order.")
-
-                order.addItem(orderItem)
-
-                if order.getItemAmount() >= 3:
-                    self.waiter.say(f"Would you like to order anything else?")
-
-                    choice = self.getUserConfirmation()
-                    if choice == "no":
-                        Order.display()
-                        choice = self.getUserConfirmation("Is this correct?")
-                        if choice == "yes":
-                            break
-            
             else:
-                self.waiter.say(f"Sorry, I could not find that item in the menu. Please try again.")
-        
+                if not quantity:
+                    quantity = self.askForQuantity(meal)
+
+                # Add item to order
+                order.addItem(meal, quantity)
+                # State the item
+                mealName = meal.getMealName() + ("s" if quantity > 1 else "")
+                self.waiter.say(f"Ok, {quantity} {mealName} added to your order.")
+
+                # If order is finished, ask for confirmation
+                if order.getItemAmount() >= 3:
+                    choice = self.getUserConfirmation("Would you like to order anything else?")
+                    if choice == "no":
+                        self.waiter.say("Ok, you have ordered:")
+                        self.waiter.say(str(order))
+                        choice = self.getUserConfirmation("Is this order correct?")
+                        if choice == "yes":
+                            running = False
+
+
+        if orderCancelled:
+            self.waiter.say(f"Ok {self.customer.getFirstName()}, the order has been cancelled.")
+            return
 
         id = order.save()
         if id:
-            self.waiter.say(f"Thank you, {self.customer.getFirstName()}, for ordering at {self.getCafeName()} today. Your order number is {id}.") # getCafeName() function
-            order.display()
+            self.waiter.say(f"Thank you, {self.customer.getFirstName()}, for ordering at {self.getCafeName()} today. Your order number is {id}.")
         else:
-            self.waiter.say(f"Sorry, {self.customer.getFirstName()}, I could not process your order. Please try again.")
+            self.waiter.say(f"Sorry, {self.customer.getFirstName()}, I could not process your order. Please try again later.")
 
 
 
@@ -328,6 +325,14 @@ class Chatbot():
     def run(self):
         """Run the chatbot"""
         # get the customer
+        if self.doFaceRecognition:
+            id = self.faceRecognition.recognize_faces()
+            if id:
+                self.customer = Customer(customerId=id)
+                self.waiter.say(f"Welcome back, {self.customer.getFirstName()}!")
+            else:
+                self.createCustomer()
+
         if not self.isPastCustomer() or not self.getCustomer():
             self.createCustomer()
 
@@ -336,7 +341,6 @@ class Chatbot():
         while running:
 
             choice = self.getRequest()
-            print(choice)
 
             if choice in self.exitRequest:
                 self.waiter.say(f"Thank you, {self.customer.getFirstName()}, for ordering at {self.getCafeName()} today. Bye bye")
@@ -348,12 +352,9 @@ class Chatbot():
                 self.displayMenu()
             elif choice in self.orderRequest:
                 self.orderFood()
-            elif choice in self.dieRequest:
-                self.waiter.say(f"KYS")
-                running = False
 
 def main():
-    italiabot = Chatbot()
+    italiabot = Chatbot(faceRecognition=False)
 
     italiabot.run()
 

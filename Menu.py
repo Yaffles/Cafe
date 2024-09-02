@@ -56,7 +56,7 @@ class Menu(SPXCafe):
         if searchMeal:
             for course in self.getCourses():
                 meals += course.findMeal(searchMeal)
-            return meals
+        return meals
 
     def findCourse(self, searchCourse=None):
         """Find a course in the menu"""

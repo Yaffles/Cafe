@@ -1,4 +1,6 @@
 from SPXCafe import SPXCafe
+import Order
+
 
 class Customer(SPXCafe):
     orders = []
@@ -11,7 +13,7 @@ class Customer(SPXCafe):
         self.setUserName(userName)
         self.setFirstName(firstName)
         self.setLastName(lastName)
-        
+
 
         # if userName is not None:
         #     self.setUserName(userName)
@@ -25,9 +27,9 @@ class Customer(SPXCafe):
             if not self.setCustomer():
                 print(f"Customer with ID {customerId} does not exist in the database.")
 
-    def setCustomer(self, userName=None, customerId=None):
+    def setCustomer(self):
         """Set the customer data from the database"""
-        retcode = False
+        successful = False
         if self.getCustomerId():
             sql = f"SELECT firstName, lastName, userName FROM customers WHERE customerId = {self.getCustomerId()}"
             customerData = self.dbGetData(sql)
@@ -35,7 +37,8 @@ class Customer(SPXCafe):
                 self.setFirstName(customer['firstName'])
                 self.setLastName(customer['lastName'])
                 self.setUserName(customer['userName'])
-            return True
+            successful = True
+
         elif self.getUserName():
             sql = f"SELECT customerId, firstName, lastName FROM customers WHERE userName = '{self.getUserName()}'"
             customerData = self.dbGetData(sql)
@@ -43,7 +46,8 @@ class Customer(SPXCafe):
                 self.setCustomerId(customer['customerId'])
                 self.setFirstName(customer['firstName'])
                 self.setLastName(customer['lastName'])
-            return True
+            successful = True
+        return successful
 
     def setFirstName(self, firstName=None):
         self.__firstName = firstName
@@ -66,57 +70,53 @@ class Customer(SPXCafe):
 
     def existsDB(self):
         '''Check if the customer exists in the database'''
-        retcode = False
+        successful = False
 
-        sql = ""
-        sqlother = None
-
-        if self.getCustomerId():
-            sqlother = f"SELECT count(*) AS count FROM customers WHERE customerId = '{self.getCustomerId()}'"
-
-        elif self.getUserName():
-            sql = f"SELECT customerId, userName FROM customers WHERE userName = '{self.getUserName()}'"
-
-        if sqlother:
-            countData = self.dbGetData(sqlother)
-            if countData:
-                for countRecord in countData:
-                    count = int(countRecord['count'])
-                if count > 0:
-                    retcode = True
-
-        elif sql:
+        if self.__customerId:
+            sql = f"SELECT COUNT(*) AS count FROM customers WHERE customerId = '{self.__customerId}'"
+            countData = self.dbGetData(sql)
+            if countData and int(countData[0]['count']) > 0:
+                successful = True
+        elif self.__userName:
+            sql = f"SELECT customerId, userName FROM customers WHERE userName = '{self.__userName}'"
             customerData = self.dbGetData(sql)
             if customerData:
-                for customer in customerData:
-                    self.setCustomerId(customer['customerId'])
-                    self.setUserName(customer['userName'])
+                self.__customerId = customerData[0]['customerId']
+                self.__userName = customerData[0]['userName']
+                successful = True
+        return successful
 
-
-
-                    retcode = True
-        return retcode
-
-
-
-    # def setCustomer(self, userName=None, customerId=None):
-    #     pass. Not using anymore
 
     def save(self):
         """Save / update the customer to the database"""
         id = self.getCustomerId()
-        if id: # If we have a customerId, then update the record
-            # sql = "UPDATE customers SET firstName = %s, lastName = %s, userName = %s WHERE customerId = %s"
-            # values = (self.getFirstName(), self.getLastName(), self.getUserName(), id)
-            # self.dbPutData(sql, values) TODO Mabye implement
-
+        if id:
             sql = f"UPDATE customers SET firstName = '{self.getFirstName()}', lastName = '{self.getLastName()}', userName = '{self.getUserName()}' WHERE customerId = {id}"
             self.dbChangeData(sql)
+
         else: # If we don't have a customerId, then insert the record
             sql = f"INSERT INTO customers (firstName, lastName, userName) VALUES ('{self.getFirstName()}', '{self.getLastName()}', '{self.getUserName()}')"
             id = self.dbPutData(sql)
             self.setCustomerId(id)
 
+    def getOrders(self):
+        """ Get's the past orders of the customer """
+        orders = []
+        sql = f"SELECT orderId, totalAmount, orderDate FROM orders WHERE customerId = {self.getCustomerId()}"
+        orderData = self.dbGetData(sql)
+
+        for order in orderData:
+            orders.append(Order.Order(orderId=order['orderId']))
+        return orders
+
+    @classmethod
+    def getAllCustomerIds(cls):
+        """Retrieve all customer IDs from the database"""
+        sql = "SELECT customerId FROM customers"
+        data = SPXCafe().dbGetData(sql)
+
+        ids = [record['customerId'] for record in data]
+        return ids
 
 
 def main():

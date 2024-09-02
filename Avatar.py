@@ -4,22 +4,24 @@ import pyttsx4
 from pydub import AudioSegment
 from pydub.playback import play
 
+from google.cloud import texttospeech
+import io
+
 class Avatar:
     """A class that represents an avatar that can speak and listen"""
 
-    def __init__(self, name="Elsa") -> None:
+    def __init__(self, name="Elsa", useSr=True) -> None:
         self.name = name
         self.initSR()
         self.initVoice()
+        self.useSr = useSr
 
-        # self.introduce() TODO idk
 
     def initSR(self):
         self.sample_rate = 48000
         self.chunk_size = 2048
         self.r = sr.Recognizer()
-        self.useSr = False # temporarily disable speech recognition
-        self.energy_threshold = 1000
+        self.min_energy_threshold = 10 # can bug out if too low
 
     def initVoice(self):
         self.__engine = pyttsx4.init()
@@ -30,7 +32,7 @@ class Avatar:
         self.__engine.setProperty('rate', 300)
         self.__engine.setProperty('volume', 1.0)
         # manually set energy threshold
-        self.r.energy_threshold = self.energy_threshold
+        self.r.energy_threshold = self.min_energy_threshold
 
     def say(self, words):
         self.__engine.say(words)
@@ -86,7 +88,9 @@ class Avatar:
                 with sr.Microphone(sample_rate=self.sample_rate, chunk_size=self.chunk_size) as source:
                     # listen for 1 second to calibrate the energy threshold for ambient noise levels
                     self.r.adjust_for_ambient_noise(source)
-                    print("Energy threshold: ", self.r.energy_threshold)
+                    if self.r.energy_threshold < self.min_energy_threshold:
+                        self.r.energy_threshold = self.min_energy_threshold
+
                     self.say(prompt)
                     print("Listening...")
                     audio = self.r.listen(source)
@@ -110,3 +114,14 @@ class Avatar:
 
             words = input("Please type: ")
         return words
+
+if __name__ == "__main__":
+    avatar = Avatar()
+    while True:
+        words = avatar.listen()
+        if words.lower() == "exit":
+            break
+        avatar.say("You said: "+words)
+        print("You said: ", words)
+    avatar.say("Goodbye")
+    print("Goodbye")
