@@ -9,21 +9,25 @@ class OrderItem(SPXCafe):
         super().__init__()
 
         self.setOrderItemId(orderItemId)
-        self.setOrderId(orderId)
 
-        self.setQuantity(quantity)
+        if orderItemId:
+            if not self.existsDB():
+                print(f"OrderItem with ID {orderItemId} does not exist in the database.")
+        else:
+            self.setOrderId(orderId)
+            self.setQuantity(quantity)
 
-        self.setPrice(price)
-        self.setMealName(mealName)
-        self.setMealId(mealId)
-
-        if meal and isinstance(meal, Meal):
-            self.setMealId(meal.getMealId())
-
-            mealName = meal.getMealName()
-            price = meal.getMealPrice()
-            self.setMealName(mealName)
             self.setPrice(price)
+            self.setName(mealName)
+            self.setMealId(mealId)
+
+            if meal and isinstance(meal, Meal):
+                self.setMealId(meal.getMealId())
+
+                mealName = meal.getMealName()
+                price = meal.getMealPrice()
+                self.setName(mealName)
+                self.setPrice(price)
 
 
 
@@ -54,15 +58,31 @@ class OrderItem(SPXCafe):
     def getPrice(self):
         return self.__price
 
-    def setMealName(self, mealName):
+    def setName(self, mealName):
         self.__mealName = mealName
-    def getMealName(self):
+    def getName(self):
         return self.__mealName
+
+    def existsDB(self):
+        """Check if the orderItem exists in the database and set the details"""
+        retcode = False
+        if self.getOrderItemId():
+            sql = f"SELECT orderItemId, orderId, mealId, quantity, price, name FROM orderItems WHERE orderItemId = {self.getOrderItemId()}"
+            orderData = SPXCafe().dbGetData(sql)
+            if orderData:
+                item = orderData[0]
+                self.setOrderId(item['orderId'])
+                self.setMealId(item['mealId'])
+                self.setQuantity(item['quantity'])
+                self.setPrice(item['price'])
+                self.setName(item['name']) # TODO Assuming 'name' is a column in your orderItems table
+                retcode = True
+        return retcode
 
     def save(self):
         '''Save the OrderItem to the database'''
-        if not self.getOrderItemId() and self.getOrderId() and self.getMealId() and self.getQuantity() and self.getPrice():
-            sql = f"INSERT INTO orderItems (orderId, mealId, quantity, price) VALUES ({self.getOrderId()}, {self.getMealId()}, {self.getQuantity()}, {self.getPrice()})"
+        if not self.getOrderItemId() and self.getOrderId() and self.getMealId() and self.getQuantity() and self.getPrice() and self.getName():
+            sql = f"INSERT INTO orderItems (orderId, mealId, quantity, price, name) VALUES ({self.getOrderId()}, {self.getMealId()}, {self.getQuantity()}, {self.getPrice()}, '{self.getName()}')"
             id = self.dbPutData(sql)
             if id:
                 self.setOrderItemId(id)
@@ -71,12 +91,12 @@ class OrderItem(SPXCafe):
 
     def display(self):
         '''Display the OrderItem details'''
-        print(f"    Meal Name: {self.getMealName()}")
+        print(f"    Meal Name: {self.getName()}")
         print(f"    Quantity: {self.getQuantity()}")
         print(f"    Price: {self.getPrice()}")
 
     def __str__(self) -> str:
-        string = f"{self.getQuantity()} {self.getMealName()} for ${self.getPrice()}"
+        string = f"{self.getQuantity()} {self.getName()} for ${self.getPrice()}"
         if self.__quantity > 1:
             string += " each"
         return string

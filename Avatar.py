@@ -26,10 +26,10 @@ class Avatar:
     def initVoice(self):
         self.__engine = pyttsx4.init()
         self.__voices = self.__engine.getProperty('voices')
-        self.__vix = 1 #TODO test other values
+        self.__vix = 1 # 0 is male, 1 is female
         self.__voice = self.__voices[self.__vix]
         self.__engine.setProperty('voice', self.__voice.id)
-        self.__engine.setProperty('rate', 300)
+        self.__engine.setProperty('rate', 300) #TODO change to reasonable
         self.__engine.setProperty('volume', 1.0)
         # manually set energy threshold
         self.r.energy_threshold = self.min_energy_threshold

@@ -22,7 +22,7 @@ class Chatbot():
         """Initialise the chatbot"""
 
         self.setCafeName(cafeName)
-        self.waiter = Avatar(waiterName)
+        self.waiter = Avatar(waiterName, False)
         self.waiter.say(f"Welcome to {self.cafeName}, I am {waiterName}.")
         self.menu = Menu("Italia Forever Lunch")
         self.nlp = NLP()
@@ -167,10 +167,13 @@ class Chatbot():
 
     def displayOrderHistory(self):
         """Display the order history of the customer"""
-        self.waiter.say(f"Ok, {self.customer.getFirstName()}. Let's show your previous orders. ")
         orders = self.customer.getOrders()
-        for o in orders:
-            o.display()
+        if len(orders) == 0:
+            self.waiter.say(f"Sorry, {self.customer.getFirstName()}, I could not find any previous orders for you.")
+        else:
+            self.waiter.say(f"Ok, {self.customer.getFirstName()}. Let's show your previous orders. ")
+            for order in orders:
+                order.display()
 
     def displayMenu(self):
         """Display the menu of the restaurant"""
@@ -179,13 +182,13 @@ class Chatbot():
         self.menu.display()
 
     def displayCourse(self):
-        """Display a single course in the menu"""
+        """Display a single course in the menu or all"""
         course = self.chooseCourse()
         if course:
             course.display()
 
     def chooseCourse(self):
-        """Ask the user to choose a course from the menu"""
+        """Ask the user to choose a course from the menu """
         courses = self.menu.getCourses()
         courseNames = [course.getCourseName() for course in courses] + ["all"]
 
@@ -276,7 +279,7 @@ class Chatbot():
         orderCancelled = False
         running = True
 
-        self.menu.display() #TODO check if we wanna to this
+        self.menu.display()
 
         while running:
             meal, quantity = self.askForMeal()
@@ -346,12 +349,12 @@ class Chatbot():
             elif choice in self.historyRequest:
                 self.displayOrderHistory()
             elif choice in self.menuRequest:
-                self.displayMenu()
+                self.displayCourse()
             elif choice in self.orderRequest:
                 self.orderFood()
 
 def main():
-    italiabot = Chatbot(faceRecognition=False)
+    italiabot = Chatbot(faceRecognition=True)
 
     italiabot.run()
 

@@ -1,7 +1,6 @@
 from Meal import Meal
 from Course import Course
 from SPXCafe import SPXCafe
-import pyfiglet
 
 class Menu(SPXCafe):
     def __init__(self, menuName=None) -> None:
@@ -36,7 +35,10 @@ class Menu(SPXCafe):
     def display(self):
         """Display the menu"""
         # print(f"{"-"*5}{self.getMenuName()} {"-"*5}\n")
-        print(pyfiglet.figlet_format(text=self.getMenuName(), font="calvin_s", width=600)) #calvin_s,
+        print("""
+╦┌┬┐┌─┐┬  ┬┌─┐  ╔═╗┌─┐┬─┐┌─┐┬  ┬┌─┐┬─┐  ╦  ┬ ┬┌┐┌┌─┐┬ ┬
+║ │ ├─┤│  │├─┤  ╠╣ │ │├┬┘├┤ └┐┌┘├┤ ├┬┘  ║  │ │││││  ├─┤
+╩ ┴ ┴ ┴┴─┘┴┴ ┴  ╚  └─┘┴└─└─┘ └┘ └─┘┴└─  ╩═╝└─┘┘└┘└─┘┴ ┴""")
         if self.getCourses():
             for course in self.getCourses():
                 course.display()
@@ -60,7 +62,7 @@ class Menu(SPXCafe):
 
     def findCourse(self, searchCourse=None):
         """Find courses from the menu"""
-        
+
         courses = []
         if searchCourse:
             for course in self.getCourses():
@@ -71,20 +73,6 @@ class Menu(SPXCafe):
 def main():
     menu = Menu("restaurant italiano")
     menu.display()
-
-    menu.displayCourses()
-
-    searchMeal = input("What meal do you want? ")
-    meals = menu.findMeal(searchMeal)
-    print("Meals found: ")
-    for meal in meals:
-        meal.display()
-
-    searchCourse = input("What course do you want? ")
-    courses = menu.findCourse(searchCourse)
-    print("We have found the following course(s): ")
-    for course in courses:
-        course.display()
 
 if __name__ == "__main__":
     main()

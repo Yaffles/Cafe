@@ -96,12 +96,10 @@ class Order(SPXCafe):
 
     def setOrderItems(self):
         """Get the order items from the database and set the order items"""
-        sql = f"SELECT orderItemId, orderId, mealId, quantity, price FROM orderItems WHERE orderId = {self.getOrderId()}"
+        sql = f"SELECT orderItemId FROM orderItems WHERE orderId = {self.getOrderId()}"
         orderItemData = SPXCafe().dbGetData(sql)
         for orderItem in orderItemData:
-            mealName = SPXCafe().dbGetData(f"SELECT mealName FROM meals WHERE mealId = {orderItem['mealId']}")[0]['mealName']
-
-            self.addItem(orderItemId=orderItem['orderItemId'], orderId=self.getOrderId(), mealName=mealName, price=orderItem['price'], quantity=orderItem['quantity'], mealId=orderItem['mealId'])
+            self.addItem(orderItemId=orderItem['orderItemId'])
 
 
 
