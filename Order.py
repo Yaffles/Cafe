@@ -49,7 +49,8 @@ class Order(SPXCafe):
         return self.__customer
 
     def getItemAmount(self):
-        return sum([item.getPrice() * item.getQuantity() for item in self.items])
+        """ returns the total number of items in the order"""
+        return sum([item.getQuantity() for item in self.items])
 
     def addItem(self, meal=None, quantity=1, orderItemId=None, orderId=None,  price=None, mealName=None, mealId=None):
         """Add an OrderItem to the order"""

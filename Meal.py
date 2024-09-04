@@ -3,14 +3,13 @@ import Course
 from rapidfuzz.fuzz import partial_ratio
 
 class Meal(SPXCafe):
-    def __init__(self, mealId=None, mealName=None, mealPrice=None, courseId=None, course=None):
+    def __init__(self, mealId=None, mealName=None, mealPrice=None, course=None):
         """Constructor Method"""
         super().__init__()
-
+        #TODO dont use courseId
         self.setMealId(mealId)
         self.setMealName(mealName)
         self.setMealPrice(mealPrice)
-        self.setCourseId(courseId)
         self.setCourse(course)
 
         if self.existsDB():
@@ -33,9 +32,7 @@ class Meal(SPXCafe):
                 self.setMealId(meal['mealId'])
                 self.setMealName(meal['mealName'])
                 self.setMealPrice(meal['mealPrice'])
-                self.setCourseId(meal['courseId'])
-                self.setCourse()
-                # self.setCourse(Course.Course(self.getCourseId()))
+                self.setCourse(Course.Course(meal['courseId']))
             retcode = True
         return retcode
 
@@ -45,17 +42,11 @@ class Meal(SPXCafe):
         self.__mealName = mealName
     def setMealPrice(self, mealPrice):
         self.__mealPrice = mealPrice
-    def setCourseId(self, courseId):
-        self.__courseId = courseId
     def setCourse(self, course=None):
-        if course:
+        if course and isinstance(course, Course.Course):
             self.__course = course
-            self.setCourseId(self.__course.getCourseId())
         else:
-            if self.getCourseId():
-                self.__course = Course.Course(self.getCourseId())
-            else:
-                self.__course = None
+            self.__course = None
 
     def getMealId(self):
         return self.__mealId
@@ -63,8 +54,6 @@ class Meal(SPXCafe):
         return self.__mealName
     def getMealPrice(self):
         return self.__mealPrice
-    def getCourseId(self):
-        return self.__courseId
     def getCourse(self):
         return self.__course
 
@@ -80,11 +69,11 @@ class Meal(SPXCafe):
         return partial_ratio(searchMeal.lower(), self.getMealName().lower()) > 80
 
     def __str__(self):
-        return f"Meal ID: {self.getMealId()}, Meal Name: {self.getMealName()}, Meal Price: {self.getMealPrice()}, Course ID: {self.getCourseId()}"
+        return f"Meal ID: {self.getMealId()}, Meal Name: {self.getMealName()}, Meal Price: {self.getMealPrice()}, Course ID: {self.getCourse().getCourseId()}"
 
     def display(self):
         '''Formal display Meal'''
-        # print(f"Meal: <Course:{self.getCourseId():2d} {self.getCourse().getCourseName().title()}, Meal:{self.getMealId():2d}> {self.getMealName().title():20s} ${self.getMealPrice():5.2f}")
+        # print(f"Meal: <Course:{self.getCourse().getCourseId():2d} {self.getCourse().getCourseName().title()}, Meal:{self.getMealId():2d}> {self.getMealName().title():20s} ${self.getMealPrice():5.2f}")
         print(f"    > {self.getMealName().title():20s} ${self.getMealPrice():5.2f}")
 
 
@@ -106,14 +95,12 @@ class Meal(SPXCafe):
     def save(self):
         '''Save meal data back to the database'''
 
-        if self.getCourse():
-            self.setCourseId(self.getCourse().getCourseId())
 
         if self.existsDB():
             sql = f'''UPDATE meals SET
                 mealName='{self.getMealName()}',
                 mealPrice={self.getMealPrice()},
-                courseId={self.getCourseId()}
+                courseId={self.getCourse().getCourseId()}
                 WHERE mealId={self.getMealId()}
             '''
             self.dbChangeData(sql)
@@ -122,7 +109,7 @@ class Meal(SPXCafe):
                 INSERT INTO meals
                 (mealName, mealPrice, courseId)
                 VALUES
-                ('{self.getMealName()}', {self.getMealPrice()}, {self.getCourseId()})
+                ('{self.getMealName()}', {self.getMealPrice()}, {self.getCourse().getCourseId()})
             '''
             # Save new primary key
             self.setMealId(self.dbPutData(sql))
@@ -131,9 +118,8 @@ class Meal(SPXCafe):
     def getMeals(cls,course):
         '''Gets Meals for a Course object/instance - example of Aggregation'''
         meals=[]
-        if course:
+        if course and isinstance(course, Course.Course):
             sql = f"SELECT mealId, mealName, mealPrice, courseId FROM meals WHERE courseId={course.getCourseId()}"
-            # print(f"Get all meals: {sql}")
 
             mealsData = SPXCafe().dbGetData(sql)
 
@@ -143,7 +129,6 @@ class Meal(SPXCafe):
                 meal.setMealId(mealData['mealId'])
                 meal.setMealName(mealData['mealName'])
                 meal.setMealPrice(mealData['mealPrice'])
-                meal.setCourseId(mealData['courseId'])
                 meal.setCourse(course)
                 # add meal object to meals list
                 meals.append(meal)
@@ -161,7 +146,7 @@ def main():
     meal = Meal(1)
     meal.display()
 
-    meal = Meal(mealName="Salata2", mealPrice=3.45, courseId=1)
+    meal = Meal(mealName="Salata2", mealPrice=3.45, course=Course(1))
     meal.display()
 
     searchMeal = "salata"

@@ -1,17 +1,22 @@
-from datetime import datetime
-
 import spacy
 from word2number import w2n
+import subprocess
+import sys
 
 class NLP():
     def __init__(self):
         """Constructor Method"""
-        self.nlp = spacy.load("en_core_web_sm")
+        try:
+            self.nlp = spacy.load("en_core_web_lg")
+        except OSError:
+            print("Downloading model...")
+            subprocess.call([sys.executable, "-m", "spacy", "download", "en_core_web_lg"])
+            self.nlp = spacy.load("en_core_web_lg")
 
     def getNameByPartsOfSpeech(self, speech):
         """Extracts a name from a string using parts of speech"""
         names = []
-        doc = self.nlp(speech)
+        doc = self.nlp(speech.lower())
         for token in doc:
             if token.pos_ == "PROPN": # Proper Noun
                 names.append(token.text)
@@ -22,13 +27,22 @@ class NLP():
     def getNameByEntityType(self, speech):
         """Extracts a name from a string using entity types"""
         names = []
-        doc = self.nlp(speech)
+        doc = self.nlp(speech.title())
         for ent in doc.ents:
-            print(ent.text, ent.label_)
             if ent.label_ == "PERSON":
                 names.append(ent.text)
 
         name = " ".join(names)
+        return name
+
+    def getName(self, speech):
+        """Extracts a name from a string"""
+        if len(speech.split()) == 1:
+            return speech
+
+        name = self.getNameByPartsOfSpeech(speech)
+        if name == "":
+            name = self.getNameByEntityType(speech)
         return name
 
     def getNumber(self, string):
@@ -71,19 +85,17 @@ class NLP():
 
 def main():
     nlpDemo = NLP()
-    numberWord = nlpDemo.getNumber("a couple steak")
+    # numberWord = nlpDemo.getNumber("a couple steak")
 
 
-    print(f"Number: {numberWord}")
-    number = nlpDemo.getInteger(numberWord)
-    print(f"{numberWord} is {number}")
+    # print(f"Number: {numberWord}")
+    # number = nlpDemo.getInteger(numberWord)
+    # print(f"{numberWord} is {number}")
 
 
-    # nlpDemo.getNameByPartsOfSpeech("My name is John Doe")
-    # nlpDemo.getNameByPartsOfSpeech("I am John Doe")
-    # nlpDemo.getNameByPartsOfSpeech("John Doe is my name")
-    # nlpDemo.getNameByPartsOfSpeech("John Doe")
-    # nlpDemo.getNameByPartsOfSpeech("John")
+    name = "my name is furini"
+    print("propn: " + nlpDemo.getNameByPartsOfSpeech(name))
+    print("entity: "+nlpDemo.getNameByEntityType(name))
 
 if __name__ == "__main__":
     main()

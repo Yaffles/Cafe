@@ -50,7 +50,7 @@ class Menu(SPXCafe):
         print(", ".join(courseNames))
 
     def findMeal(self, searchMeal=None) -> list[Meal]:
-        """Find a meal in the menu"""
+        """Find meals from a search term"""
 
         meals = []
         if searchMeal:
@@ -59,7 +59,7 @@ class Menu(SPXCafe):
         return meals
 
     def findCourse(self, searchCourse=None):
-        """Find a course in the menu"""
+        """Find courses from the menu"""
         
         courses = []
         if searchCourse:

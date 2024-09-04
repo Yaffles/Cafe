@@ -26,7 +26,7 @@ class Avatar:
     def initVoice(self):
         self.__engine = pyttsx4.init()
         self.__voices = self.__engine.getProperty('voices')
-        self.__vix = 1
+        self.__vix = 1 #TODO test other values
         self.__voice = self.__voices[self.__vix]
         self.__engine.setProperty('voice', self.__voice.id)
         self.__engine.setProperty('rate', 300)
@@ -41,37 +41,7 @@ class Avatar:
 
 
 
-        # self.__engine.runAndWait()
-        # client = texttospeech.TextToSpeechClient()
 
-        # # Set the text input to be synthesized
-        # synthesis_input = texttospeech.SynthesisInput(text=words)
-
-        # # Build the voice request, select the language code ("en-US") and the ssml
-        # # voice gender ("neutral")
-        # voice = texttospeech.VoiceSelectionParams(
-        #     language_code="en-AU", name="en-AU-Wavenet-B", ssml_gender=texttospeech.SsmlVoiceGender.MALE
-        # )
-
-        # # Select the type of audio file you want returned
-        # audio_config = texttospeech.AudioConfig(
-        #     audio_encoding=texttospeech.AudioEncoding.MP3
-        # )
-
-        # # Perform the text-to-speech request on the text input with the selected
-        # # voice parameters and audio file type
-        # response = client.synthesize_speech(
-        #     input=synthesis_input, voice=voice, audio_config=audio_config
-        # )
-
-        # # The response's audio_content is binary.
-        # audio_file = io.BytesIO(response.audio_content)
-
-        # # Load audio
-        # audio = AudioSegment.from_file(audio_file, format="mp3")
-
-        # # Play the audio file
-        # play(audio)
 
 
     def introduce(self):
