@@ -7,7 +7,6 @@ class Database():
 
     def dbConnect(self):
         """Connect to the database"""
-
         try:
             conn = sqlite3.connect(self.__dbname)
             conn.row_factory = sqlite3.Row

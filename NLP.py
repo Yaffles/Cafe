@@ -6,12 +6,13 @@ import sys
 class NLP():
     def __init__(self):
         """Constructor Method"""
+        self.__nlpVersion = "en_core_web_md"
         try:
-            self.nlp = spacy.load("en_core_web_lg")
+            self.nlp = spacy.load(self.__nlpVersion)
         except OSError:
             print("Downloading model...")
-            subprocess.call([sys.executable, "-m", "spacy", "download", "en_core_web_lg"])
-            self.nlp = spacy.load("en_core_web_lg")
+            subprocess.call([sys.executable, "-m", "spacy", "download", self.__nlpVersion])
+            self.nlp = spacy.load(self.__nlpVersion)
 
     def getNameByPartsOfSpeech(self, speech):
         """Extracts a name from a string using parts of speech"""
@@ -36,7 +37,7 @@ class NLP():
         return name
 
     def getName(self, speech):
-        """Extracts a name from a string"""
+        """Extracts a name from a string using all methods"""
         if len(speech.split()) == 1:
             return speech
 
@@ -85,12 +86,6 @@ class NLP():
 
 def main():
     nlpDemo = NLP()
-    # numberWord = nlpDemo.getNumber("a couple steak")
-
-
-    # print(f"Number: {numberWord}")
-    # number = nlpDemo.getInteger(numberWord)
-    # print(f"{numberWord} is {number}")
 
 
     name = "my name is furini"

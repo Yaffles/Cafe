@@ -114,7 +114,7 @@ class Meal(SPXCafe):
             self.setMealId(self.dbPutData(sql))
 
     @classmethod
-    def getMeals(cls,course):
+    def getMeals(cls,course) -> list['Meal']:
         '''Gets Meals for a Course object/instance - example of Aggregation'''
         meals=[]
         if course and isinstance(course, Course.Course):

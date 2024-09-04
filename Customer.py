@@ -14,15 +14,6 @@ class Customer(SPXCafe):
         self.setFirstName(firstName)
         self.setLastName(lastName)
 
-
-        # if userName is not None:
-        #     self.setUserName(userName)
-        #     self.setFirstName("Joe")
-        #     self.setLastName("Bloggs")
-            # self.existsDB()
-        # elif customerId is not None:
-        #     self.setCustomerId(customerId)
-
         if self.existsDB():
             if not self.setCustomer():
                 print(f"Customer with ID {customerId} does not exist in the database.")

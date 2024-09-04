@@ -2,15 +2,11 @@ from Avatar import Avatar
 from Menu import Menu
 from Customer import Customer
 from Order import Order
-from OrderItem import OrderItem
-
-from Meal import Meal # only for pretty
-
 from NLP import NLP
 
 from rapidfuzz.fuzz import partial_ratio
 from rapidfuzz.utils import default_process
-from rapidfuzz.process import extract, extractOne
+from rapidfuzz.process import extract
 
 
 
@@ -196,7 +192,7 @@ class Chatbot():
             self.waiter.say(f"Sorry, I could not find that course in the menu. Please try again.")
             return self.chooseCourse()
 
-    def askForMeal(self) -> tuple[Meal, int]:
+    def askForMeal(self):
         """Ask the user for the meal they would like to order"""
         item = self.waiter.listen("What would you like to order?").strip().lower()
 
@@ -243,8 +239,6 @@ class Chatbot():
             return meals[0], quantity
 
     def askForQuantity(self, meal) -> int:
-        if (type(meal) != Meal):
-            raise ValueError("meal must be of type Meal")
         """Ask the user for the quantity of the meal they would like to order"""
         answer = self.waiter.listen(f"How many {meal.getMealName()}s would you like?")
         numberWord = self.nlp.getNumber(answer)

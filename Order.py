@@ -1,4 +1,3 @@
-from Database import Database
 from SPXCafe import SPXCafe
 from OrderItem import OrderItem
 import Customer
@@ -86,7 +85,7 @@ class Order(SPXCafe):
         retcode = False
         if self.getOrderId():
             sql = f"SELECT orderId, totalAmount, orderDate FROM orders WHERE orderId = {self.getOrderId()}"
-            orderData = SPXCafe().dbGetData(sql)
+            orderData = self.dbGetData(sql)
             if orderData:
                 for order in orderData:
                     self.setOrderId(order['orderId'])
@@ -97,7 +96,7 @@ class Order(SPXCafe):
     def setOrderItems(self):
         """Get the order items from the database and set the order items"""
         sql = f"SELECT orderItemId FROM orderItems WHERE orderId = {self.getOrderId()}"
-        orderItemData = SPXCafe().dbGetData(sql)
+        orderItemData = self.dbGetData(sql)
         for orderItem in orderItemData:
             self.addItem(orderItemId=orderItem['orderItemId'])
 
@@ -105,16 +104,14 @@ class Order(SPXCafe):
 
     def display(self):
         """Display the order details"""
-
         if self.getOrderId():
             print(f"Order Number: {self.getOrderId()}")
             print(f"Order Date: {self.getOrderDate()}")
+
         for item in self.items:
             print(f"• {item}")
 
-        print(f"Total Amount: ${self.getTotalAmount()}")
-
-        print()
+        print(f"Total Amount: ${self.getTotalAmount()}\n")
 
     def __str__(self):
         string = ""
@@ -134,11 +131,3 @@ class Order(SPXCafe):
 
 if __name__ == "__main__":
     pass
-
-    # order = Order(customerId=2)
-    # order.addItem(OrderItem(mealId=1, quantity=2, price=10))
-    # order.addItem(OrderItem(mealId=2, quantity=1, price=15))
-    # order.display()
-
-    # order.save()
-    # order.display()

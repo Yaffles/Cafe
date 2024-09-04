@@ -29,10 +29,6 @@ class OrderItem(SPXCafe):
                 self.setName(mealName)
                 self.setPrice(price)
 
-
-
-
-
     def setOrderItemId(self, orderItemId):
         self.__orderItemId = orderItemId
     def getOrderItemId(self):

@@ -5,8 +5,8 @@ class SPXCafe(Database):
     """Wrapper class around database for spxcafe"""
 
     def __init__(self) -> None:
-        self.__dbname = "spxcafecopy.db"
+        self.__dbname = "spxcafe.db"
         super().__init__(self.__dbname)
     
-    def getToday(self):
-        return datetime.now().strftime("%Y-%m-%d")
+    def getToday(self): # Instead use sqllite default date
+        return datetime.now().strftime("%Y-%m-%d") 

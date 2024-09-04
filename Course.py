@@ -102,7 +102,6 @@ class Course(SPXCafe):
         retcode = False
         if self.getCourseId():
             sql = f"SELECT count(*) AS count FROM courses WHERE courseId={self.getCourseId()}"
-            # print(sql)
             countData = self.dbGetData(sql)
             if countData:
                 for countData in self.dbGetData(sql):
@@ -110,11 +109,6 @@ class Course(SPXCafe):
                 if count > 0:
                     retcode = True
         return retcode
-
-        # if self.getCourseId():
-        #     sql = f"SELECT courseId FROM course WHERE courseId = {self.getCourseId()}"
-        #     return self.dbGetData(sql)
-        # return False
 
     def save(self):
         """Save the Course object to the database"""
