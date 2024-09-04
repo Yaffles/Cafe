@@ -354,7 +354,7 @@ class Chatbot():
                 self.orderFood()
 
 def main():
-    italiabot = Chatbot(faceRecognition=False)
+    italiabot = Chatbot(faceRecognition=True)
 
     italiabot.run()
 
