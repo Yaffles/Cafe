@@ -6,7 +6,6 @@ class Meal(SPXCafe):
     def __init__(self, mealId=None, mealName=None, mealPrice=None, course=None):
         """Constructor Method"""
         super().__init__()
-        #TODO dont use courseId
         self.setMealId(mealId)
         self.setMealName(mealName)
         self.setMealPrice(mealPrice)
