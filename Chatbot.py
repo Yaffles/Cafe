@@ -12,24 +12,19 @@ from rapidfuzz.fuzz import partial_ratio
 from rapidfuzz.utils import default_process
 from rapidfuzz.process import extract, extractOne
 
-from FaceRecognition import FaceRecognition
 
 
 class Chatbot():
     """Chatbot class - the main class for the chatbot"""
 
-    def __init__(self, cafeName="Italiabot", waiterName="Luigi", faceRecognition=False):
+    def __init__(self, cafeName="Italiabot", waiterName="Luigi", menuName="Italia Forever Lunch"):
         """Initialise the chatbot"""
 
         self.setCafeName(cafeName)
         self.waiter = Avatar(waiterName, False)
         self.waiter.say(f"Welcome to {self.cafeName}, I am {waiterName}.")
-        self.menu = Menu("Italia Forever Lunch")
+        self.menu = Menu(menuName)
         self.nlp = NLP()
-
-        self.doFaceRecognition = faceRecognition
-        if faceRecognition:
-            self.faceRecognition = FaceRecognition()
 
 
         #  These are the keywords for each option and the corresponding response when choosing that option
@@ -129,10 +124,6 @@ class Chatbot():
 
         self.customer = Customer(userName=username, firstName=firstName, lastName=lastName)
         self.customer.save()
-
-        if self.doFaceRecognition:
-            self.waiter.say(f"Please look at the camera so I can remember your face.")
-            self.faceRecognition.add_face(self.customer.getCustomerId())
 
 
         self.waiter.say(f"Welcome {self.customer.getFirstName()} {self.customer.getLastName()}!")
@@ -325,14 +316,6 @@ class Chatbot():
     def run(self):
         """Run the chatbot"""
         # get the customer
-        if self.doFaceRecognition:
-            id = self.faceRecognition.recognize_faces()
-            if id:
-                self.customer = Customer(customerId=id)
-                self.waiter.say(f"Welcome back, {self.customer.getFirstName()}!")
-            else:
-                self.createCustomer()
-
         if not self.isPastCustomer() or not self.getCustomer():
             self.createCustomer()
 
@@ -354,10 +337,10 @@ class Chatbot():
                 self.orderFood()
 
 def main():
-    italiabot = Chatbot(faceRecognition=True)
+    italiabot = Chatbot()
 
     italiabot.run()
 
 
-# if __name__ == "__main__":
-main()
+if __name__ == "__main__":
+    main()

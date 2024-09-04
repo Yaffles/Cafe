@@ -1,4 +1,3 @@
-import openai
 import speech_recognition as sr
 import pyttsx4
 from pydub import AudioSegment
