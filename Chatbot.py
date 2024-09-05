@@ -42,8 +42,6 @@ class Chatbot():
         matches = []
         maxConfidence = 0
 
-
-
         while len(matches)==0:
             if not choice:
                 if not question:
