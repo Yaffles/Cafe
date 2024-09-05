@@ -13,15 +13,13 @@ from rapidfuzz.process import extract
 class Chatbot():
     """Chatbot class - the main class for the chatbot"""
 
-    def __init__(self, cafeName="Italiabot", waiterName="Luigi", menuName="Italia Forever Lunch"):
+    def __init__(self, cafeName="Italiabot", waiterName="Luigi", menuName="Italia Forever Lunch", useSr=True):
         """Initialise the chatbot"""
-
         self.setCafeName(cafeName)
-        self.waiter = Avatar(waiterName, False)
+        self.waiter = Avatar(waiterName, useSr, speed=200) # Can increase speed if needed
         self.waiter.say(f"Welcome to {self.cafeName}, I am {waiterName}.")
         self.menu = Menu(menuName)
         self.nlp = NLP()
-
 
         #  These are the keywords for each option and the corresponding response when choosing that option
         self.exitRequest = ["exit","leave","bye", "abandon", "quit"]
@@ -39,11 +37,17 @@ class Chatbot():
 
     def getChoice(self, choice=None, options=None, requiredConfidence=80, question=None):
         ''' choose from a list of options'''
+        if not options:
+            return []
         matches = []
         maxConfidence = 0
 
+
+
         while len(matches)==0:
             if not choice:
+                if not question:
+                    question = "Please choose from the following options: " + ", ".join(options)
                 choice = self.waiter.listen(question).strip().lower()
                 if not choice:
                     break
@@ -144,13 +148,16 @@ class Chatbot():
             self.waiter.say(f"Ok {self.customer.getFirstName()}. What would you like to do? ")
 
             option = self.waiter.listen("Order food? See the menu? Look at your order history? or Exit?")
+            if not option:
+                self.waiter.say("I'm sorry, I didn't understand that. Please try again.")
+                continue
 
             choice = self.getChoice(option, self.mainOptions)
 
             if choice:
                 return choice
 
-            self.waiter.say(f"I am sorry, I don't understand your choice. You said: '{option}. Please try again.")
+            self.waiter.say(f"I am sorry, I don't understand your choice. You said: '{option}'. Please try again.")
 
     def displayOrderHistory(self):
         """Display the order history of the customer"""
@@ -225,11 +232,13 @@ class Chatbot():
 
         if len(meals) > 1:
             mealNames = [meal.getMealName() for meal in meals]
-
-            new = self.waiter.listen(f"Please choose between: {mealNames.join(", ")}")
-            chosenMealNames = self.getChoice(new, meals)
-            chosenMeals = [meal for meal in meals if meal.getMeanName() in chosenMealNames]
-            return chosenMeals[0], quantity
+            while True:
+                new = self.waiter.listen(f"Please choose between: {", ".join(mealNames)}")
+                if new:
+                    chosenMealNames = self.getChoice(new, mealNames)
+                    chosenMeals = [meal for meal in meals if meal.getMealName() == chosenMealNames]
+                    if len(chosenMeals) > 0:
+                        return chosenMeals[0], quantity
 
 
         elif len(meals) == 0:
@@ -331,8 +340,7 @@ class Chatbot():
                 self.orderFood()
 
 def main():
-    italiabot = Chatbot()
-
+    italiabot = Chatbot(cafeName="Italiabot", waiterName="Luigi", menuName="Italia Forever Lunch", useSr=True)
     italiabot.run()
 
 

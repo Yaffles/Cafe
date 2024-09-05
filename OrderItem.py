@@ -63,7 +63,7 @@ class OrderItem(SPXCafe):
         """Check if the orderItem exists in the database and set the details"""
         retcode = False
         if self.getOrderItemId():
-            sql = f"SELECT orderItemId, orderId, mealId, quantity, price, name FROM orderItems WHERE orderItemId = {self.getOrderItemId()}"
+            sql = f"SELECT orderItemId, orderId, mealId, quantity, price FROM orderItems WHERE orderItemId = {self.getOrderItemId()}"
             orderData = SPXCafe().dbGetData(sql)
             if orderData:
                 item = orderData[0]
@@ -71,14 +71,15 @@ class OrderItem(SPXCafe):
                 self.setMealId(item['mealId'])
                 self.setQuantity(item['quantity'])
                 self.setPrice(item['price'])
-                self.setName(item['name']) # TODO Assuming 'name' is a column in your orderItems table
+                mealName = SPXCafe().dbGetData(f"SELECT mealName FROM meals WHERE mealId = {self.getMealId()}")[0]['mealName']
+                self.setName(mealName)
                 retcode = True
         return retcode
 
     def save(self):
         '''Save the OrderItem to the database'''
         if not self.getOrderItemId() and self.getOrderId() and self.getMealId() and self.getQuantity() and self.getPrice() and self.getName():
-            sql = f"INSERT INTO orderItems (orderId, mealId, quantity, price, name) VALUES ({self.getOrderId()}, {self.getMealId()}, {self.getQuantity()}, {self.getPrice()}, '{self.getName()}')"
+            sql = f"INSERT INTO orderItems (orderId, mealId, quantity, price) VALUES ({self.getOrderId()}, {self.getMealId()}, {self.getQuantity()}, {self.getPrice()})"
             id = self.dbPutData(sql)
             if id:
                 self.setOrderItemId(id)
@@ -92,7 +93,7 @@ class OrderItem(SPXCafe):
         print(f"    Price: {self.getPrice()}")
 
     def __str__(self) -> str:
-        string = f"{self.getQuantity()} {self.getName()} for ${self.getPrice()}"
+        string = f"{self.getQuantity()} {self.getName()} for ${self.getPrice():.2f}"
         if self.__quantity > 1:
             string += " each"
         return string

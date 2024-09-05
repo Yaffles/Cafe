@@ -111,7 +111,7 @@ class Order(SPXCafe):
         for item in self.items:
             print(f"• {item}")
 
-        print(f"Total Amount: ${self.getTotalAmount()}\n")
+        print(f"Total Amount: ${self.getTotalAmount():.2f}\n")
 
     def __str__(self):
         string = ""
@@ -121,7 +121,7 @@ class Order(SPXCafe):
         for item in self.items:
             string += f"• {item}\n"
 
-        string += f"Total Amount: ${self.getTotalAmount()}\n"
+        string += f"Total Amount: ${self.getTotalAmount():.2f}\n"
         return string
 
 
