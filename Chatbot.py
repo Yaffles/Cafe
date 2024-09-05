@@ -354,6 +354,7 @@ class Chatbot():
                 self.orderFood()
 
 def main():
+    print("PLEASE MARK THE MASTER BRANCH INSTEAD OF THIS PLS :)")
     italiabot = Chatbot(faceRecognition=True)
 
     italiabot.run()
